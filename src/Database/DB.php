@@ -1,5 +1,7 @@
 <?php
 
+namespace Bubblegum\Database;
+
 class DB {
     /**
      * @var PDO|null
