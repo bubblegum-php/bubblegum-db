@@ -2,6 +2,8 @@
 
 namespace Bubblegum\Database;
 
+use PDO;
+
 class DB {
     /**
      * @var PDO|null
@@ -14,10 +16,9 @@ class DB {
     protected static function getDatabasePropertiesFromEnv(): string
     {
         return sprintf(
-            "%s:host=%s;port=%d;dbname=%s",
+            "%s:host=%s;dbname=%s;",
             env('DATABASE_CONNECTION', 'pgsql'),
             env('DATABASE_HOST', 'localhost'),
-            env('DATABASE_PORT', 5432),
             env('DATABASE_DB', 'database')
         );
     }
@@ -27,9 +28,13 @@ class DB {
      */
     public static function initPDO()
     {
-        self::$pdo = new PDO(self::getDatabasePropertiesFromEnv(), env('DATABASE_USER', 'root'), env('DATABASE_PASSWORD'));
+        self::$pdo = new PDO(self::getDatabasePropertiesFromEnv(), 'bubblegum', 'password');
     }
 
+    /**
+     * @param $sqlStatement
+     * @return void
+     */
     public static function exec($sqlStatement): void
     {
         self::$pdo->exec($sqlStatement);
@@ -40,9 +45,28 @@ class DB {
      * @param string[] $columnSqlParts
      * @return void
      */
-    public static function createTable(string $tableName, array $columnSqlParts): void
+    public static function createTable(string $tableName, array $columnSqlParts=[]): void
     {
         $columnsSql = implode(',', $columnSqlParts);
         self::exec("CREATE TABLE $tableName($columnsSql);");
+    }
+
+    /**
+     * @param string $tableName
+     * @return void
+     */
+    public static function dropTable(string $tableName): void
+    {
+        self::exec("DROP TABLE $tableName;");
+    }
+
+    /**
+     * @param string $tableName
+     * @param string $columnName
+     * @return void
+     */
+    public static function dropColumn(string $tableName, string $columnName): void
+    {
+        self::exec("ALTER TABLE $tableName DROP COLUMN $columnName;");
     }
 }
