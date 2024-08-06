@@ -3,6 +3,7 @@
 namespace Bubblegum\Database;
 
 use PDO;
+use PDOStatement;
 
 class DB {
     /**
@@ -68,5 +69,11 @@ class DB {
     public static function dropColumn(string $tableName, string $columnName): void
     {
         self::exec("ALTER TABLE $tableName DROP COLUMN $columnName;");
+    }
+
+    public static function select(string $tableName, ?array $columns=null, array $whereSqlParts=[]): false|PDOStatement
+    {
+        $columns = $columns ? implode(',', $columns) : '*';
+        return self::$pdo->prepare("SELECT $columns FROM $tableName" . ($whereSqlParts ? ' WHERE ' . implode(' AND ', $whereSqlParts) : ''));
     }
 }
