@@ -1,0 +1,38 @@
+<?php
+
+namespace Bubblegum\Database;
+
+class ConditionsUnion implements ConditionInterface
+{
+    /**
+     * OR condition separator
+     */
+    public const OR = 0;
+    /**
+     * OR condition separator with priority
+     */
+    public const OR_PRIORITY = 1;
+    /**
+     * AND condition separator
+     */
+    public const AND = 2;
+
+    /**
+     * @param array $conditions
+     * @param int $type
+     */
+    public function __construct(protected array $conditions, protected int $type = self::AND)
+    {}
+
+    /**
+     * @return string
+     */
+    public function getSqlPart(): string
+    {
+        return match ($this->type) {
+            self::OR => implode(' OR ', $this->conditions),
+            self::OR_PRIORITY => '('.implode(' OR ', $this->conditions).')',
+            self::AND => implode(' AND ', $this->conditions),
+        };
+    }
+}

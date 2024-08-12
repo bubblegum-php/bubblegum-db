@@ -71,8 +71,25 @@ class DB {
         self::exec("ALTER TABLE $tableName DROP COLUMN $columnName;");
     }
 
+    /**
+     * @param string $statement
+     * @return false|PDOStatement
+     */
     public static function prepare(string $statement): false|PDOStatement
     {
         return self::$pdo->prepare($statement);
     }
+
+    /**
+     * @param string $tableName
+     * @param ConditionsUnion $conditionUnion
+     * @param array|null $columns
+     * @return false|PDOStatement
+     */
+    public static function select(string $tableName, ConditionsUnion $conditionUnion, ?array $columns = null): false|PDOStatement
+     {
+         $sqlConditionsPart = $conditionUnion->getSqlPart();
+         $sqlColumnsPart = $columns ? implode(',', $columns) : '*';
+         return self::$pdo->prepare("SELECT $sqlColumnsPart FROM $tableName WHERE $sqlConditionsPart;");
+     }
 }
