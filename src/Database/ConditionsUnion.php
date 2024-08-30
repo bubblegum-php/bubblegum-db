@@ -35,4 +35,25 @@ class ConditionsUnion implements ConditionInterface
             self::AND => implode(' AND ', $this->conditions),
         };
     }
+
+    public function addCondition(ConditionInterface $condition): ConditionsUnion
+    {
+        $this->conditions[] = $condition;
+        return $this;
+    }
+
+    public function getConditions(): array
+    {
+        return $this->conditions;
+    }
+
+    public function setConditions(array $conditions): ConditionsUnion
+    {
+        $this->conditions = $conditions;
+        return $this;
+    }
+    public function clearConditions(): ConditionsUnion
+    {
+        return $this->setConditions([]);
+    }
 }
