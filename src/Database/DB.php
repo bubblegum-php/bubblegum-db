@@ -29,7 +29,11 @@ class DB {
      */
     public static function initPDO()
     {
-        self::$pdo = new PDO(self::getDatabasePropertiesFromEnv(), 'bubblegum', 'password');
+        self::$pdo = new PDO(
+            self::getDatabasePropertiesFromEnv(),
+            env('DATABASE_USER'),
+            env('DATABASE_PASSWORD')
+        );
     }
 
     /**
