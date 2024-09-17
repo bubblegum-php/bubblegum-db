@@ -18,10 +18,10 @@ class ConditionsUnion implements ConditionInterface
     public const AND = 2;
 
     /**
-     * @param array $conditions
+     * @param Condition[] $conditions
      * @param int $type
      */
-    public function __construct(protected array $conditions, protected int $type = self::AND)
+    public function __construct(protected array $conditions = [], protected int $type = self::AND)
     {}
 
     /**
@@ -34,6 +34,11 @@ class ConditionsUnion implements ConditionInterface
             self::OR_PRIORITY => '('.implode(' OR ', $this->conditions).')',
             self::AND => implode(' AND ', $this->conditions),
         };
+    }
+
+    public function __toString(): string
+    {
+        return $this->getSqlPart();
     }
 
     public function addCondition(ConditionInterface $condition): ConditionsUnion

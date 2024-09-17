@@ -22,6 +22,11 @@ class Condition implements ConditionInterface
         return $this->value;
     }
 
+    public function __toString(): string
+    {
+        return $this->getSqlPart();
+    }
+
     public function getSqlPart(): string
     {
         return $this->name . $this->comparison . $this->valueToSql();
@@ -30,7 +35,7 @@ class Condition implements ConditionInterface
     public function valueToSql(): string
     {
         return match (gettype($this->value)) {
-            'string' => "\"$this->value\"",
+            'string' => "'$this->value'",
             default => (string) $this->value,
         };
     }
