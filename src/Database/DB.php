@@ -5,6 +5,9 @@ namespace Bubblegum\Database;
 use PDO;
 use PDOStatement;
 
+/**
+ * Facade for database connection
+ */
 class DB {
     /**
      * @var PDO|null
@@ -46,6 +49,15 @@ class DB {
     }
 
     /**
+     * @param string $statement
+     * @return false|PDOStatement
+     */
+    public static function prepare(string $statement): false|PDOStatement
+    {
+        return self::$pdo->prepare($statement);
+    }
+
+    /**
      * @param string $tableName
      * @param string[] $columnSqlParts
      * @return void
@@ -76,24 +88,63 @@ class DB {
     }
 
     /**
-     * @param string $statement
-     * @return false|PDOStatement
-     */
-    public static function prepare(string $statement): false|PDOStatement
-    {
-        return self::$pdo->prepare($statement);
-    }
-
-    /**
      * @param string $tableName
      * @param ConditionsUnion $conditionUnion
      * @param array|null $columns
      * @return false|PDOStatement
      */
     public static function select(string $tableName, ConditionsUnion $conditionUnion, ?array $columns = null): false|PDOStatement
+    {
+        $sqlConditionsPart = $conditionUnion->getSqlPart();
+        $sqlColumnsPart = $columns ? implode(',', $columns) : '*';
+        return self::prepare("SELECT $sqlColumnsPart FROM $tableName WHERE $sqlConditionsPart;");
+    }
+
+    /**
+     * @param mixed $value
+     * @return string
+     */
+    protected static function valueToSql(mixed $value): string
+    {
+        return match (gettype($value)) {
+            'string' => "'$value'",
+            default => (string) $value,
+        };
+    }
+
+    /**
+     * @param string $tableName
+     * @param array $values
+     * @return int
+     */
+    public static function insert(string $tableName, array $values): int
      {
-         $sqlConditionsPart = $conditionUnion->getSqlPart();
-         $sqlColumnsPart = $columns ? implode(',', $columns) : '*';
-         return self::$pdo->prepare("SELECT $sqlColumnsPart FROM $tableName WHERE $sqlConditionsPart;");
+         $sqlColumnsPart = implode(',', array_keys($values));
+         $sqlValuesPart = implode(',',
+             array_map(function ($value) {
+                 return self::valueToSql($value);
+             }, array_values($values)));
+         self::exec("INSERT INTO $tableName ($sqlColumnsPart) VALUES ($sqlValuesPart);");
+         return self::$pdo->lastInsertId();
+     }
+
+    /**
+     * @param string $tableName
+     * @param array $data
+     * @param ConditionsUnion $findConditions
+     * @return void
+     */
+    public static function update(string $tableName, array $data, ConditionsUnion $findConditions): void
+     {
+         $findConditionsSqlPart = $findConditions->getSqlPart();
+         $updateValuesSqlPart = array_map(
+             function ($key, $value) {
+                 $value = self::valueToSql($value);
+                 return "$key = $value";
+             },
+             array_keys($data), array_values($data)
+         );
+         $updateValuesSqlPart = implode(',', $updateValuesSqlPart);
+         self::exec("UPDATE $tableName SET $updateValuesSqlPart WHERE $findConditionsSqlPart;");
      }
 }
