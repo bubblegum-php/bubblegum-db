@@ -32,8 +32,11 @@ class DB {
      */
     public static function initPDO()
     {
-        self::$pdo = new PDO(
-            self::getDatabasePropertiesFromEnv(),
+        if (isset(static::$pdo)) {
+            return;
+        }
+        static::$pdo = new PDO(
+            static::getDatabasePropertiesFromEnv(),
             env('DATABASE_USER'),
             env('DATABASE_PASSWORD')
         );
@@ -45,7 +48,7 @@ class DB {
      */
     public static function exec($sqlStatement): void
     {
-        self::$pdo->exec($sqlStatement);
+        static::$pdo->exec($sqlStatement);
     }
 
     /**
@@ -54,7 +57,7 @@ class DB {
      */
     public static function prepare(string $statement): false|PDOStatement
     {
-        return self::$pdo->prepare($statement);
+        return static::$pdo->prepare($statement);
     }
 
     /**
@@ -65,7 +68,7 @@ class DB {
     public static function createTable(string $tableName, array $columnSqlParts=[]): void
     {
         $columnsSql = implode(',', $columnSqlParts);
-        self::exec("CREATE TABLE $tableName($columnsSql);");
+        static::exec("CREATE TABLE $tableName($columnsSql);");
     }
 
     /**
@@ -74,7 +77,7 @@ class DB {
      */
     public static function dropTable(string $tableName): void
     {
-        self::exec("DROP TABLE $tableName;");
+        static::exec("DROP TABLE $tableName;");
     }
 
     /**
@@ -84,7 +87,7 @@ class DB {
      */
     public static function dropColumn(string $tableName, string $columnName): void
     {
-        self::exec("ALTER TABLE $tableName DROP COLUMN $columnName;");
+        static::exec("ALTER TABLE $tableName DROP COLUMN $columnName;");
     }
 
     /**
@@ -97,7 +100,7 @@ class DB {
     {
         $sqlConditionsPart = $conditionUnion->getSqlPart();
         $sqlColumnsPart = $columns ? implode(',', $columns) : '*';
-        return self::prepare("SELECT $sqlColumnsPart FROM $tableName WHERE $sqlConditionsPart;");
+        return static::prepare("SELECT $sqlColumnsPart FROM $tableName WHERE $sqlConditionsPart;");
     }
 
     /**
@@ -122,10 +125,10 @@ class DB {
          $sqlColumnsPart = implode(',', array_keys($values));
          $sqlValuesPart = implode(',',
              array_map(function ($value) {
-                 return self::valueToSql($value);
+                 return static::valueToSql($value);
              }, array_values($values)));
-         self::exec("INSERT INTO $tableName ($sqlColumnsPart) VALUES ($sqlValuesPart);");
-         return self::$pdo->lastInsertId();
+         static::exec("INSERT INTO $tableName ($sqlColumnsPart) VALUES ($sqlValuesPart);");
+         return static::$pdo->lastInsertId();
      }
 
     /**
@@ -139,12 +142,12 @@ class DB {
          $findConditionsSqlPart = $findConditions->getSqlPart();
          $updateValuesSqlPart = array_map(
              function ($key, $value) {
-                 $value = self::valueToSql($value);
+                 $value = static::valueToSql($value);
                  return "$key = $value";
              },
              array_keys($data), array_values($data)
          );
          $updateValuesSqlPart = implode(',', $updateValuesSqlPart);
-         self::exec("UPDATE $tableName SET $updateValuesSqlPart WHERE $findConditionsSqlPart;");
+         static::exec("UPDATE $tableName SET $updateValuesSqlPart WHERE $findConditionsSqlPart;");
      }
 }
