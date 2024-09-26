@@ -15,11 +15,9 @@
     },
     "require": {
         "php": "^8.0",
-        "ext-pdo": "*"
-    },
-    "require-dev": {
-        "bubblegum-php/bubblegum-core": "@dev",
-        "bubblegum-php/bubblegum-environment": "@dev"
+        "ext-pdo": "*",
+        "bubblegum-php/bubblegum-core": "1.0.*",
+        "bubblegum-php/bubblegum-environment": "1.0.*"
     },
     "autoload": {
         "psr-4": {
